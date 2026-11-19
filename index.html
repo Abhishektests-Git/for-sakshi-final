@@ -938,28 +938,32 @@
         height: 100%;
         pointer-events: none;
       }
-      /* ONE purple ASCII butterfly in the finale, living
-         around the "Happy Birthday, Sakshi!" heading — the
-         only butterfly on the last page. It is a single
-         butterfly from the same generated character-grid
-         model as the cake flock (wing-shape maths, ".:;+=*%#"
-         ramp), coloured purple: a violet-to-lavender wing
-         gradient, deeper purple outlines, pale lilac
-         highlight spots, dark purple body. It flies
-         CONTINUOUSLY in a random pattern in the area
-         immediately around the heading — random waypoints
-         above, beside and just below the words, gentle
-         turns, calm speed and flap rate — never sitting
-         still and never wandering off across the page.
-         Touching the butterfly itself makes it hurry:
-         flight speed and flap rate jump to roughly 2.35x
-         for about 2 seconds, then ease smoothly back to
-         normal (see the script beside the finale). It
-         lives in an absolutely-positioned overlay inside
-         the heading, so the heading's layout never shifts,
-         and the overlay is pointer-events: none — it never
-         blocks a tap. Under reduced-motion it simply rests
-         still near the heading and touch does nothing. */
+      /* TWO ASCII butterflies in the finale, living around
+         the "Happy Birthday, Sakshi!" heading — one purple,
+         one pink, each from the same generated
+         character-grid model as the cake flock (wing-shape
+         maths, ".:;+=*%#" ramp), each in its own script
+         beside the finale. The purple one (violet-to-
+         lavender gradient, deeper purple outlines, pale
+         lilac highlights, dark purple body) favours the
+         area above and to the upper-left of the words; the
+         pink one (blush-to-rose gradient, deeper pink
+         outlines, pale cream highlights, dark deep-pink
+         body) favours the area below and to the lower-
+         right, slightly smaller and slightly calmer — so
+         the two are almost never in the same spot. Both
+         fly CONTINUOUSLY in random patterns near the
+         heading, never sitting still and never wandering
+         off across the page. Touching either butterfly
+         makes THAT one hurry: flight speed and flap rate
+         jump to roughly 2.35x for about 2 seconds, then
+         ease smoothly back to normal. They live in
+         absolutely-positioned overlays inside the heading,
+         so the heading's layout never shifts, and the
+         overlays are pointer-events: none — they never
+         block a tap. Under reduced-motion both simply rest
+         still at their separate spots and touch does
+         nothing. */
       #finalTitle {
         position: relative;
       }
@@ -3145,8 +3149,16 @@
         position: relative;
         z-index: 1;
       }
-      /* Large view (plain, as in the orbit build): rounded card,
-         face-centred square photo and that photo's own caption, close via the
+      /* Large view: rounded card, face-centred square photo and
+         that photo's own caption in a bar anchored to the BOTTOM
+         OF THE PHOTO itself (a dark gradient scrim with white
+         text, so it is readable over any photo). The caption
+         used to sit in a separate body block under the photo,
+         where a tall card could push it below the fold on a
+         phone and it read as missing; as an overlay on the
+         photo it is always on screen with the photo. The photo
+         frame's height is also capped against the viewport, so
+         the whole card always fits on screen. Close via the
          x button, the backdrop, or Escape. */
       #orbModal {
         position: fixed;
@@ -3181,9 +3193,26 @@
         position: relative;
         aspect-ratio: 1 / 1;
         flex: none;
+        width: 100%;
+        max-height: calc(92vh - 2rem);
+        max-height: calc(92dvh - 2rem);
         background: #f9dbe7;
       }
-      .orb-modal-imgwrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      /* Fallback for browsers without aspect-ratio: give the
+         frame an explicit square-ish height so the photo can
+         never stretch to its natural (very tall) height and
+         push the caption off the screen. */
+      @supports not (aspect-ratio: 1 / 1) {
+        .orb-modal-imgwrap { height: min(92vw, 26rem); }
+      }
+      .orb-modal-imgwrap img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
       .orb-modal-close {
         position: absolute;
         top: 0.75rem;
@@ -3204,8 +3233,30 @@
         transition: background 0.2s ease;
       }
       .orb-modal-close:hover { background: rgba(0, 0, 0, 0.5); }
-      .orb-modal-body { padding: 1rem 1.25rem 1.25rem; text-align: center; overflow: auto; }
-      .orb-modal-cap { margin: 0; font-size: 0.95rem; line-height: 1.55; color: #99516f; }
+      .orb-modal-close { z-index: 3; }
+      /* Caption bar at the bottom of the photo: a deep-plum
+         gradient scrim (transparent at the top, near-opaque at
+         the bottom edge) with white text and a soft shadow, so
+         the photo's own caption is fully readable over bright
+         skies and dark dresses alike. It never takes a tap. */
+      .orb-modal-capbar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 2;
+        padding: 2.4rem 1rem 0.85rem;
+        background: linear-gradient(to bottom, rgba(74, 20, 44, 0) 0%, rgba(74, 20, 44, 0.55) 52%, rgba(74, 20, 44, 0.88) 100%);
+        pointer-events: none;
+      }
+      .orb-modal-cap {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        text-align: center;
+        color: #fff;
+        text-shadow: 0 1px 6px rgba(74, 20, 44, 0.55), 0 0 2px rgba(74, 20, 44, 0.6);
+      }
       @media (prefers-reduced-motion: reduce) {
         .orb-node { transition: none; }
         .orb-frame { transition: none; }
@@ -4675,9 +4726,9 @@
             <button class="orb-modal-close" id="orbModalClose" type="button" aria-label="Close">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
-          </div>
-          <div class="orb-modal-body">
-            <p class="orb-modal-cap" id="orbModalCap"></p>
+            <div class="orb-modal-capbar">
+              <p class="orb-modal-cap" id="orbModalCap"></p>
+            </div>
           </div>
         </div>
       </div>
@@ -5063,10 +5114,12 @@
 
     <script>
       // ONE purple ASCII butterfly in the finale, living
-      // around the "Happy Birthday, Sakshi!" heading — the
-      // only butterfly on the last page (the old blanket of
-      // butterflies over the heading is gone; the heading
-      // text is simply itself, always visible). The butterfly
+      // around the "Happy Birthday, Sakshi!" heading — it
+      // favours the area above and to the upper-left of the
+      // words. A pink companion (its own script right after
+      // this one) flies the lower-right side of the heading,
+      // so the two are almost never in the same spot. The
+      // heading text is simply itself, always visible. The butterfly
       // is the same generated character-grid model as the
       // cake flock — wing-shape maths, the ".:;+=*%#" density
       // ramp, pre-rendered flap frames — recoloured PURPLE:
@@ -5242,19 +5295,21 @@
           }
           return best;
         }
-        // Random waypoints in the area immediately AROUND
-        // the heading: across its width and a little above
-        // and just below it, hugging the words — never far
-        // from the text and never wandering the page. The
-        // butterfly flies between these points continuously,
-        // picking a fresh one each time it reaches one. The
-        // region scales with the heading itself, so on phone
-        // widths it simply shrinks to fit.
+        // Random waypoints in THIS butterfly's home area:
+        // above and to the upper-left of the heading,
+        // hugging the words — never far from the text and
+        // never wandering the page, and (by design) mostly
+        // away from the pink companion's lower-right area.
+        // The butterfly flies between these points
+        // continuously, picking a fresh one each time it
+        // reaches one. The region scales with the heading
+        // itself, so on phone widths it simply shrinks
+        // to fit.
         function randomWaypoint() {
           var W = title.clientWidth, H = title.clientHeight;
           return {
-            x: -W * 0.03 + Math.random() * W * 1.06,
-            y: -H * 0.4 + Math.random() * H * 1.8
+            x: -W * 0.05 + Math.random() * W * 0.67,
+            y: -H * 0.55 + Math.random() * H * 1.0
           };
         }
         function place(rot) {
@@ -5283,12 +5338,12 @@
           frameIdx = -1;
           speedMul = 1;
           burstUntil = 0;
-          // Start just above the heading's right side and
+          // Start above the heading's left side and
           // pick the first waypoint; from here it simply
           // keeps flying near the text. Under reduced-motion
           // no animation loop is started, so this same spot
           // is where it rests statically near the heading.
-          pos.x = W * 0.82; pos.y = -H * 0.18;
+          pos.x = W * 0.12; pos.y = -H * 0.3;
           target = randomWaypoint();
           mode = "flap";
           modeEnd = 0;
@@ -5354,6 +5409,383 @@
           var dist = Math.sqrt(dx * dx + dy * dy);
           var maxTurn = (dist < 60 ? 5 : 2.4) * dt * (0.7 + 0.3 * speedMul);
           var speed = 62 * speedMul;
+          turnToward(Math.atan2(dy, dx), maxTurn);
+          pos.x += Math.cos(heading) * speed * dt;
+          pos.y += Math.sin(heading) * speed * dt;
+          if (dist < 10) target = randomWaypoint();
+          place(Math.cos(heading) * 10);
+          paintFrame(frameIdxFor(open));
+        }
+        // Touch the butterfly and it speeds up: taps are
+        // heard on the finale section and hit-tested against
+        // the butterfly's live on-screen position. The
+        // handler only observes — it never prevents, stops
+        // or consumes the tap — so everything else in the
+        // finale behaves exactly as before, and the touch
+        // triggers nothing but the speed burst.
+        var tapSection = title.closest ? title.closest("section") : null;
+        function onTap(ev) {
+          if (!el || reduce) return;
+          var now = Date.now();
+          if (now - lastTap < 450) return;
+          var t = (ev.changedTouches && ev.changedTouches[0]) || ev;
+          if (t.clientX == null) return;
+          var r = el.getBoundingClientRect();
+          var dx = t.clientX - (r.left + r.width / 2);
+          var dy = t.clientY - (r.top + r.height / 2);
+          var rad = Math.max(30, size * 0.85);
+          if (dx * dx + dy * dy <= rad * rad) {
+            lastTap = now;
+            // Speed burst: about 2 seconds of noticeably
+            // faster flight and flapping, after which the
+            // frame loop eases the speed smoothly back to
+            // normal. A fresh touch during the burst
+            // restarts the window, extending it.
+            burstUntil = performance.now() + BURST_MS;
+            mode = "flap";
+            modeEnd = 0;
+          }
+        }
+        if (tapSection) {
+          tapSection.addEventListener("click", onTap, false);
+          tapSection.addEventListener("touchend", onTap, false);
+        }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(function (entries) {
+            visible = entries[0].isIntersecting;
+          }, { rootMargin: "60px" }).observe(title);
+        } else {
+          visible = true;
+        }
+        // The heading has no size until the main page is
+        // shown, so wait for it before building.
+        function tryStart() {
+          if (started) return;
+          if (!title.clientWidth || !title.clientHeight) {
+            setTimeout(tryStart, 250);
+            return;
+          }
+          started = true;
+          if (!build()) { started = false; setTimeout(tryStart, 300); return; }
+          if (!reduce) requestAnimationFrame(frame);
+        }
+        tryStart();
+        // Rebuild if the heading's rendered size changes a
+        // lot (rotation, big resize): the butterfly restarts
+        // near the heading and keeps flying from there.
+        // (Waypoints are measured live from the heading's
+        // current size on every pick, so late-arriving
+        // webfonts need no special handling.)
+        var resizeTimer = null;
+        window.addEventListener("resize", function () {
+          if (!started) return;
+          if (resizeTimer) clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(function () {
+            if (Math.abs(title.clientWidth - builtW) > 24) build();
+          }, 350);
+        });
+      })();
+    </script>
+
+    <script>
+      // ONE pink ASCII butterfly in the finale, companion
+      // to the purple one in the script above, living
+      // around the same "Happy Birthday, Sakshi!" heading
+      // but favouring the OPPOSITE side — below and to the
+      // lower-right of the words — with its own random
+      // waypoint area, a slightly smaller size and a
+      // slightly calmer baseline speed and flap rate, so
+      // the two butterflies are almost never in the same
+      // spot. It is the same generated character-grid
+      // model as the purple one and the cake flock —
+      // wing-shape maths, the ".:;+=*%#" density ramp,
+      // pre-rendered flap frames — recoloured PINK: a
+      // blush-to-rose wing gradient, deeper pink outlines,
+      // pale cream highlight spots, dark deep-pink body.
+      // It KEEPS FLYING near the text, continuously:
+      // random waypoints in its bounded lower-right region
+      // hugging the heading, gentle turns, flapping with
+      // short glides — it never sits still and never
+      // wanders off across the page. TOUCH: tapping or
+      // clicking the butterfly itself (hit-tested against
+      // its live position, heard on the finale section —
+      // the butterfly never takes pointer events and the
+      // handler never prevents or consumes anything)
+      // starts the same SPEED BURST as the purple one:
+      // for about 2 seconds its flight speed and flap
+      // rate rise to roughly 2.35x normal, then ease
+      // smoothly back to its calm baseline. A fresh touch
+      // during a burst restarts the 2-second window.
+      // Taps anywhere else in the finale behave exactly
+      // as before. Under reduced-motion it rests
+      // statically at its own spot below the heading's
+      // right side and touch does nothing.
+      (function () {
+        var title = document.getElementById("finalTitle");
+        if (!title) return;
+        var RAMP = ".:;+=*%#";
+        var EDGE = "#%@", BODYG = "8#@", HIGH = "o*";
+        var PAL = { inner: [255, 213, 231], outer: [233, 105, 160], edge: "#A81F57", centre: "#E7548F", tip: "#C94F80", body: "#6E1B3E", antenna: "#D98BB0", high: "#FFF6EC", glow: "rgba(201,79,128,0.38)" };
+        function hash(c, r) {
+          var s = Math.sin(c * 127.1 + r * 311.7) * 43758.5453;
+          return s - Math.floor(s);
+        }
+        function segDist(px, py, x1, y1, x2, y2) {
+          var dx = x2 - x1, dy = y2 - y1;
+          var t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+          t = Math.max(0, Math.min(1, t));
+          var ex = x1 + t * dx - px, ey = y1 + t * dy - py;
+          return Math.sqrt(ex * ex + ey * ey);
+        }
+        function wingAt(wx, wy) {
+          var ax = Math.abs(wx);
+          var fx = ax - 0.78, fy = wy - 0.36;
+          var ca = Math.cos(-0.32), sa = Math.sin(-0.32);
+          var rx = fx * ca - fy * sa, ry = fx * sa + fy * ca;
+          var fe = (rx / 0.82) * (rx / 0.82) + (ry / 0.52) * (ry / 0.52);
+          if (ax > 0.04 && fe < 1) return { part: 1, ev: fe };
+          var hx = ax - 0.56, hy = wy + 0.4;
+          var he = (hx / 0.6) * (hx / 0.6) + (hy / 0.46) * (hy / 0.46);
+          var scallop = 1 + 0.07 * Math.sin(Math.atan2(hy, hx) * 3 + 0.6);
+          if (ax > 0.03 && he < scallop * scallop) return { part: 2, ev: he / (scallop * scallop) };
+          return null;
+        }
+        var WINGSPOTS = [
+          [0.95, 0.52], [1.12, 0.34], [0.78, 0.62], [1.24, 0.52]
+        ];
+        // Pre-rendered flap frames for the one pink palette:
+        // the butterfly is drawn once per wing-openness step
+        // on a small grid (36x20 cells — plenty at this size)
+        // and the live butterfly just copies the frame that
+        // matches its current openness.
+        var FCOLS = 36, FROWS = 20, FW = 252, FH = 178;
+        var FRAME_OPENS = [0.55, 0.7, 0.85, 1];
+        function renderFrame(open) {
+          var cv = document.createElement("canvas");
+          cv.width = FW; cv.height = FH;
+          var ctx = cv.getContext("2d");
+          if (!ctx) return cv;
+          var cw = FW / FCOLS, ch = FH / FROWS;
+          var cx = (FCOLS - 1) / 2, cy = (FROWS - 1) / 2;
+          ctx.font = '600 11px "Courier New", ui-monospace, monospace';
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          var lift = (1 - open) * 0.5;
+          for (var row = 0; row < FROWS; row++) {
+            for (var col = 0; col < FCOLS; col++) {
+              var X = (col - cx) * cw / 100;
+              var Y = (cy - row) * ch / 100;
+              var glyph = null, color = null;
+              var h = hash(col, row);
+              var side = X < 0 ? -1 : 1;
+              var ax2 = Math.abs(X);
+              var tipD = Math.sqrt((ax2 - 0.44) * (ax2 - 0.44) + (Y - 1.04) * (Y - 1.04));
+              if (tipD < 0.085 && Y > 0.6) {
+                glyph = "o"; color = PAL.antenna;
+              } else if (Y > 0.55 && segDist(ax2, Y, 0.03, 0.6, 0.44, 1.04) < 0.04) {
+                glyph = side < 0 ? "/" : "\\"; color = PAL.antenna;
+              }
+              var hd = Math.sqrt(X * X + (Y - 0.5) * (Y - 0.5));
+              if (!glyph && hd < 0.15) { glyph = "8"; color = PAL.body; }
+              if (!glyph && Math.abs(X) < (Y > 0.05 ? 0.085 : 0.06) && Y < 0.42 && Y > -0.62) {
+                glyph = BODYG[Math.floor(h * 3) % 3]; color = PAL.body;
+              }
+              if (!glyph) {
+                var wx = X / Math.max(open, 0.1);
+                var wy = Y - lift * Math.abs(wx);
+                var w = wingAt(wx, wy);
+                if (w) {
+                  var rr = Math.sqrt(wx * wx + (wy - 0.05) * (wy - 0.05)) / 1.5;
+                  if (rr > 1) rr = 1;
+                  var spot = false;
+                  if (w.part === 1) {
+                    for (var s = 0; s < WINGSPOTS.length; s++) {
+                      var sx = Math.abs(wx) - WINGSPOTS[s][0], sy = wy - WINGSPOTS[s][1];
+                      if (sx * sx + sy * sy < 0.011) { spot = true; break; }
+                    }
+                  }
+                  if (spot) {
+                    glyph = HIGH[Math.floor(h * 2) % 2]; color = PAL.high;
+                  } else if (w.ev > 0.8) {
+                    glyph = EDGE[Math.floor(h * 3) % 3]; color = PAL.edge;
+                  } else if (w.part === 1 && Math.abs(wx) > 1.18 && wy > 0.42) {
+                    glyph = RAMP[6 + (Math.floor(h * 3) % 3)]; color = PAL.tip;
+                  } else if (rr < 0.3) {
+                    glyph = RAMP[4 + (Math.floor(h * 3) % 3)]; color = PAL.centre;
+                  } else {
+                    glyph = RAMP[Math.max(0, Math.min(9, Math.floor(rr * 10)))];
+                    color = "rgb(" +
+                      Math.round(PAL.inner[0] + (PAL.outer[0] - PAL.inner[0]) * rr) + "," +
+                      Math.round(PAL.inner[1] + (PAL.outer[1] - PAL.inner[1]) * rr) + "," +
+                      Math.round(PAL.inner[2] + (PAL.outer[2] - PAL.inner[2]) * rr) + ")";
+                  }
+                }
+              }
+              if (glyph) {
+                ctx.fillStyle = color;
+                ctx.fillText(glyph, (col + 0.5) * cw, (row + 0.5) * ch);
+              }
+            }
+          }
+          return cv;
+        }
+        var FRAMES = [];
+        for (var fi = 0; fi < FRAME_OPENS.length; fi++) {
+          FRAMES.push(renderFrame(FRAME_OPENS[fi]));
+        }
+        var layer = document.createElement("div");
+        layer.className = "bf-solo";
+        layer.setAttribute("aria-hidden", "true");
+        title.appendChild(layer);
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var el = null, canvas = null, frameIdx = -1;
+        var size = 0, builtW = 0;
+        var pos = { x: 0, y: 0 };
+        var heading = -Math.PI / 2;
+        var target = null;
+        var phase = Math.random() * Math.PI * 2;
+        var flapFreq = 2.1;
+        var mode = "flap", modeEnd = 0;
+        var visible = false, last = null, started = false;
+        var lastTap = 0;
+        // Speed multiplier: 1 is the calm baseline. A touch
+        // on the butterfly opens a ~2 second burst window
+        // during which the multiplier eases up to ~2.35 —
+        // flight speed AND flap rate both scale by it — then
+        // it eases smoothly back to 1 once the window ends.
+        var speedMul = 1;
+        var burstUntil = 0;
+        var BURST_MS = 2000, BURST_MUL = 2.35;
+        function paintFrame(idx) {
+          if (!canvas || frameIdx === idx) return;
+          frameIdx = idx;
+          var ctx = canvas.getContext("2d");
+          if (!ctx) return;
+          ctx.clearRect(0, 0, FW, FH);
+          ctx.drawImage(FRAMES[idx], 0, 0);
+        }
+        function frameIdxFor(open) {
+          var best = 0, bd = 99;
+          for (var i = 0; i < FRAME_OPENS.length; i++) {
+            var d = Math.abs(FRAME_OPENS[i] - open);
+            if (d < bd) { bd = d; best = i; }
+          }
+          return best;
+        }
+        // Random waypoints in THIS butterfly's home area:
+        // below and to the lower-right of the heading,
+        // hugging the words — never far from the text and
+        // never wandering the page, and (by design) mostly
+        // away from the purple companion's upper-left area.
+        // The butterfly flies between these points
+        // continuously, picking a fresh one each time it
+        // reaches one. The region scales with the heading
+        // itself, so on phone widths it simply shrinks
+        // to fit.
+        function randomWaypoint() {
+          var W = title.clientWidth, H = title.clientHeight;
+          return {
+            x: W * 0.38 + Math.random() * W * 0.7,
+            y: H * 0.55 + Math.random() * H * 1.1
+          };
+        }
+        function place(rot) {
+          if (!el) return;
+          el.style.transform = "translate(-50%,-50%) translate(" +
+            pos.x.toFixed(1) + "px," + pos.y.toFixed(1) + "px) rotate(" +
+            rot.toFixed(2) + "deg)";
+        }
+        function build() {
+          var W = title.clientWidth, H = title.clientHeight;
+          if (!W || !H) return false;
+          builtW = W;
+          size = W < 420 ? 33 : 40;
+          layer.innerHTML = "";
+          el = document.createElement("div");
+          el.className = "bfly";
+          el.style.width = size + "px";
+          el.style.height = Math.round(size * FH / FW) + "px";
+          el.style.opacity = "1";
+          canvas = document.createElement("canvas");
+          canvas.width = FW;
+          canvas.height = FH;
+          canvas.style.filter = "drop-shadow(0 0 3px rgba(255,255,255,0.9)) drop-shadow(0 1px 4px " + PAL.glow + ")";
+          el.appendChild(canvas);
+          layer.appendChild(el);
+          frameIdx = -1;
+          speedMul = 1;
+          burstUntil = 0;
+          // Start below the heading's right side and
+          // pick the first waypoint; from here it simply
+          // keeps flying near the text. Under reduced-motion
+          // no animation loop is started, so this same spot
+          // is where it rests statically near the heading.
+          pos.x = W * 0.88; pos.y = H * 1.25;
+          target = randomWaypoint();
+          mode = "flap";
+          modeEnd = 0;
+          paintFrame(frameIdxFor(0.97));
+          place(0);
+          return true;
+        }
+        function turnToward(desired, maxTurn) {
+          var d = desired - heading;
+          while (d > Math.PI) d -= Math.PI * 2;
+          while (d < -Math.PI) d += Math.PI * 2;
+          if (d > maxTurn) d = maxTurn;
+          else if (d < -maxTurn) d = -maxTurn;
+          heading += d;
+        }
+        function frame(ts) {
+          requestAnimationFrame(frame);
+          if (!el) { last = ts; return; }
+          if (!visible) { last = ts; return; }
+          if (last === null) last = ts;
+          var dt = Math.min(0.05, (ts - last) / 1000);
+          last = ts;
+          if (dt <= 0) return;
+          var now = ts;
+          // Ease the speed multiplier: a fast rise into the
+          // burst while the burst window is open, then a
+          // smooth glide back down to the calm baseline of 1.
+          var wantMul = now < burstUntil ? BURST_MUL : 1;
+          var easeRate = wantMul > speedMul ? 7 : 2.2;
+          speedMul += (wantMul - speedMul) * Math.min(1, dt * easeRate);
+          if (Math.abs(wantMul - speedMul) < 0.01) speedMul = wantMul;
+          var effFlap = flapFreq * speedMul;
+          var open;
+          // Flap with short flat glides, like the flock —
+          // but no gliding mid-burst: it beats its wings the
+          // whole time it is hurrying.
+          if (now >= modeEnd) {
+            if (mode === "flap") {
+              if (speedMul > 1.25) {
+                modeEnd = now + 300;
+              } else {
+                mode = "glide";
+                modeEnd = now + 450 + Math.random() * 750;
+              }
+            } else {
+              mode = "flap";
+              modeEnd = now + (3 + Math.floor(Math.random() * 4)) * (1000 / effFlap);
+            }
+          }
+          if (mode === "glide" && speedMul <= 1.25) {
+            open = 0.97;
+          } else {
+            if (mode === "glide") mode = "flap";
+            phase += Math.PI * 2 * effFlap * dt;
+            open = 0.55 + 0.45 * Math.sin(phase);
+          }
+          // Steer gently toward the current waypoint; turn
+          // harder when close so it settles onto the point
+          // instead of circling it, then pick a new random
+          // waypoint near the text and keep flying.
+          if (!target) target = randomWaypoint();
+          var dx = target.x - pos.x, dy = target.y - pos.y;
+          var dist = Math.sqrt(dx * dx + dy * dy);
+          var maxTurn = (dist < 60 ? 5 : 2.4) * dt * (0.7 + 0.3 * speedMul);
+          var speed = 52 * speedMul;
           turnToward(Math.atan2(dy, dx), maxTurn);
           pos.x += Math.cos(heading) * speed * dt;
           pos.y += Math.sin(heading) * speed * dt;
@@ -8113,9 +8545,10 @@
         /* Face-centre positions (percent x, y) from the YuNet face scan
            of the 154 photos, carried over from the Orbit Gallery: used
            as object-position so the circular tiles and the large view
-           crop around the subject instead of the image centre. Photos
-           absent here keep 50% 50%. */
-        var FOCAL = {1:[55.1,79],2:[47.5,24.9],3:[42.2,41.5],4:[66.5,20.9],5:[44.1,34.2],6:[53.6,34.2],7:[41.6,37.1],9:[65.2,16],10:[50.5,20.7],11:[68.2,31],12:[63.4,37.8],13:[65.9,30.3],14:[29.7,38.8],15:[30.2,36.4],17:[53.9,42.2],18:[54.5,42.8],19:[56.8,25.3],20:[60.5,28.6],21:[62.7,39.8],22:[36.9,43.2],24:[62.2,42.4],26:[36.1,55.1],27:[47.2,43.1],28:[45.4,45],29:[32.7,27.8],30:[47.8,44.1],31:[36.4,50.7],32:[42.7,48.3],33:[42.5,46.8],35:[45.4,41.3],36:[39.5,40.8],37:[46.5,36.8],38:[32.1,36.3],39:[28.1,49.8],40:[38.8,32.5],41:[44.8,37.7],42:[47.9,32.2],43:[37.3,43.9],44:[44,40.1],45:[49.4,43.4],47:[54.2,41.7],48:[52.8,39.3],49:[27.4,39.9],50:[38.2,38.1],51:[64.8,30.1],52:[24.8,49.4],53:[16.6,50.6],54:[40.6,34.5],55:[29.5,50.2],56:[37.6,40.5],57:[58.5,41.7],58:[38.9,49.2],59:[52.4,28.4],60:[53.2,37.9],61:[39.8,38.6],62:[45.1,48.3],63:[45.6,42.1],64:[45,46],65:[46.4,37.7],67:[56.5,28.4],68:[46.8,44.1],69:[71,45.8],71:[36.9,41.6],72:[61.1,20.6],73:[45.5,31.6],74:[54.1,28.6],75:[70,31.8],76:[43.2,27.2],77:[58.5,37.8],78:[55.4,30.6],79:[48.6,16.1],80:[66.4,20.9],81:[61.9,29.1],82:[59.6,29.5],83:[56.9,39.3],84:[43.4,27.4],85:[55.7,35.8],86:[46.2,34.7],87:[57.9,28.5],88:[27.9,18.8],89:[25.4,38.1],90:[22,40.3],91:[42.6,38.7],92:[52.8,44],93:[62.6,46.3],94:[57.1,46.2],95:[53.1,36.8],97:[37.2,34.7],98:[28.7,36.5],99:[33.2,29],100:[40.8,25.2],101:[57.6,30.8],102:[55.6,24.6],103:[54.4,38.7],104:[42.6,40.1],105:[47.8,35.1],106:[48.3,39.3],107:[42,35.7],108:[38.5,36.9],109:[45.4,42.9],110:[50.5,35.6],111:[41.7,37.4],112:[50,21.4],113:[37,31.7],114:[51.3,27.2],115:[51.6,40.2],117:[33.6,28.6],118:[39.8,45.5],119:[60.2,60.1],120:[40.8,38],121:[70.7,49.5],122:[32.9,44.6],123:[74.8,27.3],124:[70.8,38.7],125:[53.8,45.7],126:[54.9,44.3],127:[46,44.6],128:[41.2,40.8],129:[48.7,43.4],130:[54,42.7],131:[42.6,47.7],132:[34,52.2],133:[47.9,39.4],134:[56.6,35.2],136:[46.9,33.2],137:[64.3,32.9],138:[42.9,23.2],139:[39.4,43.7],140:[44.4,34.8],141:[60.5,39.2],142:[54.2,40],143:[46.1,41],144:[34.8,49.4],145:[41.4,36.6],146:[64.3,31],147:[58.7,70.7],148:[36.8,41.7],149:[54.5,72.4],150:[46.5,34.4],151:[44.5,38.7],152:[43.4,33.2],154:[52,28.7]};
+           crop around the subject instead of the image centre. Every
+           one of the 154 photos has an entry here; the few with no
+           single clear face are entered as 50% 50% (true centre). */
+        var FOCAL = {1:[55.1,79],2:[47.5,24.9],3:[42.2,41.5],4:[66.5,20.9],5:[44.1,34.2],6:[53.6,34.2],7:[41.6,37.1],8:[46.6,47.1],9:[65.2,16],10:[50.5,20.7],11:[68.2,31],12:[63.4,37.8],13:[65.9,30.3],14:[29.7,38.8],15:[30.2,36.4],16:[51.1,50.7],17:[53.9,42.2],18:[54.5,42.8],19:[56.8,25.3],20:[60.5,28.6],21:[62.7,39.8],22:[36.9,43.2],23:[50,50],24:[62.2,42.4],25:[50,50],26:[36.1,55.1],27:[47.2,43.1],28:[45.4,45],29:[32.7,27.8],30:[47.8,44.1],31:[36.4,50.7],32:[42.7,48.3],33:[42.5,46.8],34:[53.1,51.1],35:[45.4,41.3],36:[39.5,40.8],37:[46.5,36.8],38:[32.1,36.3],39:[28.1,49.8],40:[38.8,32.5],41:[44.8,37.7],42:[47.9,32.2],43:[37.3,43.9],44:[44,40.1],45:[49.4,43.4],46:[50,50],47:[54.2,41.7],48:[52.8,39.3],49:[27.4,39.9],50:[38.2,38.1],51:[64.8,30.1],52:[24.8,49.4],53:[16.6,50.6],54:[40.6,34.5],55:[29.5,50.2],56:[37.6,40.5],57:[58.5,41.7],58:[38.9,49.2],59:[52.4,28.4],60:[53.2,37.9],61:[39.8,38.6],62:[45.1,48.3],63:[45.6,42.1],64:[45,46],65:[46.4,37.7],66:[50,50],67:[56.5,28.4],68:[46.8,44.1],69:[71,45.8],70:[50,50],71:[36.9,41.6],72:[61.1,20.6],73:[45.5,31.6],74:[54.1,28.6],75:[70,31.8],76:[43.2,27.2],77:[58.5,37.8],78:[55.4,30.6],79:[48.6,16.1],80:[66.4,20.9],81:[61.9,29.1],82:[59.6,29.5],83:[56.9,39.3],84:[43.4,27.4],85:[55.7,35.8],86:[46.2,34.7],87:[57.9,28.5],88:[27.9,18.8],89:[25.4,38.1],90:[22,40.3],91:[42.6,38.7],92:[52.8,44],93:[62.6,46.3],94:[57.1,46.2],95:[53.1,36.8],96:[49.5,47.8],97:[37.2,34.7],98:[28.7,36.5],99:[33.2,29],100:[40.8,25.2],101:[57.6,30.8],102:[55.6,24.6],103:[54.4,38.7],104:[42.6,40.1],105:[47.8,35.1],106:[48.3,39.3],107:[42,35.7],108:[38.5,36.9],109:[45.4,42.9],110:[50.5,35.6],111:[41.7,37.4],112:[50,21.4],113:[37,31.7],114:[51.3,27.2],115:[51.6,40.2],116:[50,50],117:[33.6,28.6],118:[39.8,45.5],119:[60.2,60.1],120:[40.8,38],121:[70.7,49.5],122:[32.9,44.6],123:[74.8,27.3],124:[70.8,38.7],125:[53.8,45.7],126:[54.9,44.3],127:[46,44.6],128:[41.2,40.8],129:[48.7,43.4],130:[54,42.7],131:[42.6,47.7],132:[34,52.2],133:[47.9,39.4],134:[56.6,35.2],135:[50,50],136:[46.9,33.2],137:[64.3,32.9],138:[42.9,23.2],139:[39.4,43.7],140:[44.4,34.8],141:[60.5,39.2],142:[54.2,40],143:[46.1,41],144:[34.8,49.4],145:[41.4,36.6],146:[64.3,31],147:[58.7,70.7],148:[36.8,41.7],149:[54.5,72.4],150:[46.5,34.4],151:[44.5,38.7],152:[43.4,33.2],153:[50,50],154:[52,28.7]};
         function focalPos(n) {
           var f = FOCAL[n];
           return f ? f[0] + "% " + f[1] + "%" : "50% 50%";
