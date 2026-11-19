@@ -12,6 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet" />
+    <!-- Preload the hero photo (the right size for this screen) so
+         it is already decoded when "Open your surprise" reveals the
+         page — the opening glide never waits on, or pops in, the
+         hero image. -->
+    <link rel="preload" as="image" href="assets/hero-bg.webp" media="(min-width: 801px)" />
+    <link rel="preload" as="image" href="assets/hero-bg-800.webp" media="(max-width: 800px)" />
     <style>
 
       :root {
@@ -246,6 +252,42 @@
       #main {
         display: none;
         position: relative;
+      }
+      /* Smooth page opening: tapping "Open your surprise" no longer
+         cuts instantly from the intro to the page. The entry script
+         puts #main in place first, sets the hero's lines rising in
+         one after another (.hero-rise, staggered by the script),
+         then adds .intro-leaving so the intro — now a fixed overlay
+         above the page — glides up and fades away over it. No layout
+         jump, no flash: only transform/opacity move, all on one soft
+         ease-out curve. Under prefers-reduced-motion the entry
+         script keeps the plain instant swap and never adds these
+         classes. */
+      #intro {
+        transition:
+          opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1),
+          transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+      }
+      #intro.intro-leaving {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        opacity: 0;
+        transform: translateY(-16px) scale(1.02);
+        pointer-events: none;
+      }
+      #main .hero-rise {
+        animation: heroRise 0.85s cubic-bezier(0.22, 0.61, 0.36, 1) backwards;
+      }
+      @keyframes heroRise {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
       }
       .hero {
         min-height: 90svh;
@@ -502,6 +544,22 @@
         display: none;
         background: rgba(255, 255, 255, 0.3);
         box-shadow: none;
+        /* The reveal eases in — a soft fade with a gentle rise and
+           the smallest scale settle — starting just as the bubble
+           pop peaks, so the gift never snaps into view and never
+           arrives after a dead gap. The animation runs when
+           openGift switches the card from display:none to block. */
+        animation: giftIn 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.16s both;
+      }
+      @keyframes giftIn {
+        from {
+          opacity: 0;
+          transform: translateY(16px) scale(0.965);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
       /* The gift box floats inside a soft bubble: a translucent,
          rounded soap-bubble shell with a glossy shine and a tiny
@@ -556,13 +614,18 @@
         50% { transform: translateY(-11px); }
       }
       .gift-bubble.popped {
-        animation: bubblePop 0.45s ease-out forwards;
+        animation: bubblePop 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
         pointer-events: none;
       }
+      /* The pop swells first, then bursts outward as it fades —
+         one continuous eased motion, peaking at about a third of
+         the way through, which is when the gift reveal and the
+         confetti are timed to land (see openGift and giftIn). */
       @keyframes bubblePop {
-        0% { transform: scale(1); opacity: 1; }
-        30% { transform: scale(1.14); opacity: 1; }
-        100% { transform: scale(1.7); opacity: 0; }
+        0% { transform: translateY(-4px) scale(1); opacity: 1; }
+        32% { transform: translateY(0) scale(1.15); opacity: 1; }
+        62% { transform: translateY(0) scale(1.42); opacity: 0.55; }
+        100% { transform: translateY(0) scale(1.78); opacity: 0; }
       }
       @keyframes bubbleFade {
         to { opacity: 0; transform: scale(1.04); }
@@ -784,8 +847,27 @@
         font-size: 34px;
         animation: beat 1s infinite;
       }
+      /* When the candle is blown, the flame dies gracefully instead
+         of vanishing in one frame: a small blown-out squash, then a
+         quick shrink and fade (transform/opacity only), held
+         invisible by the forwards fill. Under reduced-motion the
+         reduced-motion block further down hides it instantly. */
       .cake.out .flame {
-        display: none;
+        animation: flameOut 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+      }
+      @keyframes flameOut {
+        0% {
+          opacity: 1;
+          transform: translateX(-50%) scale(1, 1);
+        }
+        35% {
+          opacity: 0.95;
+          transform: translateX(-50%) scale(1.08, 0.78);
+        }
+        100% {
+          opacity: 0;
+          transform: translateX(-50%) scale(0.12, 0.18) translateY(5px);
+        }
       }
       /* "Touch this" hint on the cake: bare text with NO pill, fill
          or border — just soft pink lettering and a little blossom
@@ -996,7 +1078,7 @@
         border: 1px solid rgba(255, 255, 255, 0.7);
         -webkit-backdrop-filter: blur(6px);
         backdrop-filter: blur(6px);
-        animation: wishIn 3s ease 0.5s both;
+        animation: wishIn 2s cubic-bezier(0.22, 0.61, 0.36, 1) 0.35s both;
       }
       #wishMsg::before {
         content: "";
@@ -1016,20 +1098,21 @@
       #wishMsg > * {
         position: relative;
       }
+      /* Only opacity, transform and the flat background colour
+         animate here: animating backdrop-filter frame-by-frame is
+         what made this reveal stutter on phones. The card's own
+         blur(6px) applies from the first frame, while the card is
+         still transparent, so nothing ever pops. */
       @keyframes wishIn {
         from {
           opacity: 0;
           transform: translateY(14px);
           background: rgba(255, 206, 224, 0);
-          -webkit-backdrop-filter: blur(0);
-          backdrop-filter: blur(0);
         }
         to {
           opacity: 1;
           transform: none;
           background: rgba(255, 206, 224, 0.5);
-          -webkit-backdrop-filter: blur(6px);
-          backdrop-filter: blur(6px);
         }
       }
       #s-wish {
@@ -1129,9 +1212,19 @@
         z-index: 20;
         animation: pop 1.6s ease-out forwards;
       }
+      /* Burst pieces start small and transparent at the origin and
+         grow/fade in as they launch, instead of appearing at full
+         size in a single frame. */
       @keyframes pop {
-        to {
-          transform: translate(var(--x), var(--y)) rotate(240deg);
+        0% {
+          transform: translate(0, 0) rotate(0deg) scale(0.45);
+          opacity: 0;
+        }
+        14% {
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--x), var(--y)) rotate(240deg) scale(1);
           opacity: 0;
         }
       }
@@ -1901,6 +1994,18 @@
         height: 100%;
         z-index: 24;
         pointer-events: none;
+        /* The canvas itself fades in over a few frames so the first
+           confetti pieces never snap onto the screen at full
+           strength. */
+        animation: confettiIn 0.3s ease-out both;
+      }
+      @keyframes confettiIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
       .balloon {
         position: fixed;
@@ -2142,6 +2247,9 @@
         .reveal { transition: none; opacity: 1; transform: none; }
         .flip-in, .slides .sl, .lc .lc-body { transition-duration: 0.01ms !important; }
         .burst { display: none; }
+        #gift-message { animation: none; }
+        .cake.out .flame { animation: none; opacity: 0; }
+        .confetti { animation: none; }
       }
       /* ---- mobile & tablet polish ---- */
       body {
@@ -3387,8 +3495,6 @@
           opened = true;
           var intro = document.getElementById("intro");
           var main = document.getElementById("main");
-          if (intro) intro.style.display = "none";
-          if (main) main.style.display = "block";
           // The music button stays hidden on entry: it is only
           // revealed when the candle is blown (see blowCandle and
           // the music gate's start path). Entry merely primes the
@@ -3397,8 +3503,43 @@
           try {
             if (typeof window.primeSong === "function") window.primeSong();
           } catch (err) {}
+          var reduce =
+            window.matchMedia &&
+            matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (!intro || !main || reduce) {
+            if (intro) intro.style.display = "none";
+            if (main) main.style.display = "block";
+            window.scrollTo(0, 0);
+            return;
+          }
+          // Smooth opening: the page is put in place first, with the
+          // hero's lines set to rise in one after another, then the
+          // intro — switched to a fixed overlay by .intro-leaving —
+          // glides up and fades away over it. One continuous motion,
+          // no instant cut and no layout jump.
+          main.style.display = "block";
+          var risers = [];
+          var kids = main.querySelectorAll(".hero > *");
+          for (var i = 0; i < kids.length; i++) {
+            if (kids[i].classList.contains("flower")) continue;
+            kids[i].classList.add("hero-rise");
+            kids[i].style.animationDelay = risers.length * 80 + "ms";
+            risers.push(kids[i]);
+          }
+          intro.classList.add("intro-leaving");
+          setTimeout(function () {
+            intro.style.display = "none";
+            intro.classList.remove("intro-leaving");
+          }, 700);
+          setTimeout(function () {
+            risers.forEach(function (el) {
+              el.classList.remove("hero-rise");
+              el.style.animationDelay = "";
+            });
+          }, 2400);
         }
         window.enter = openSurprise;
+        window.__openSurprise = openSurprise;
         var btn = document.getElementById("enterBtn");
         if (btn) {
           btn.addEventListener("click", openSurprise, false);
@@ -5871,6 +6012,15 @@
     <script>
       // Welcome screen
       function enter() {
+        // The entry gate's opener (bound to the button by its own
+        // small script, and exposed here) performs the smooth intro
+        // glide; route through it whenever it exists so every entry
+        // path animates the same way. The plain swap below remains
+        // as the fallback if that script ever fails to run.
+        if (typeof window.__openSurprise === "function") {
+          window.__openSurprise();
+          return;
+        }
         document.getElementById("intro").style.display = "none";
         document.getElementById("main").style.display = "block";
         // Music button intentionally NOT shown here: it stays
@@ -6226,7 +6376,7 @@
         // fade, so the same timing still works.
         if (bubble) {
           bubble.classList.add("popped");
-          setTimeout(function () { bubble.hidden = true; }, 500);
+          setTimeout(function () { bubble.hidden = true; }, 640);
         }
         if (gb) { gb.hidden = true; gb.setAttribute("aria-hidden", "true"); }
         document.getElementById("gift-message").style.display = "block";
@@ -6240,6 +6390,10 @@
         // undo the reveal. celebrate() itself drastically reduces the
         // burst under prefers-reduced-motion.
         if (firstOpen) {
+          // The burst launches a beat after the tap, just as the
+          // bubble pop peaks, so the pop, the reveal and the
+          // confetti read as one flowing motion.
+          setTimeout(function () {
           try {
             celebrate(giftRect, { noBalloons: true });
           } catch (err) {}
@@ -6275,6 +6429,7 @@
               }
             }
           } catch (err) {}
+          }, 150);
         }
         document
           .getElementById("gift-message")
@@ -6565,19 +6720,24 @@
           step();
           setInterval(step, 3000);
         }, 3000);
-        try {
-          celebrate();
-        } catch (err) {}
-        const emo = ["\u{1F497}", "\u{1F338}", "\u2728", "\u{1F389}", "\u{1F337}", "\u{1F98B}"];
-        for (let i = 0; i < 30; i++) {
-          const b = document.createElement("span");
-          b.className = "burst";
-          b.textContent = emo[i % emo.length];
-          b.style.setProperty("--x", Math.random() * 360 - 180 + "px");
-          b.style.setProperty("--y", -Math.random() * 380 - 40 + "px");
-          document.body.appendChild(b);
-          setTimeout(() => b.remove(), 1700);
-        }
+        // The celebration launches a beat after the tap, just as
+        // the flame finishes dying, so the blow reads as one smooth
+        // chain: flame out first, then confetti and balloons rise.
+        setTimeout(() => {
+          try {
+            celebrate();
+          } catch (err) {}
+          const emo = ["\u{1F497}", "\u{1F338}", "\u2728", "\u{1F389}", "\u{1F337}", "\u{1F98B}"];
+          for (let i = 0; i < 30; i++) {
+            const b = document.createElement("span");
+            b.className = "burst";
+            b.textContent = emo[i % emo.length];
+            b.style.setProperty("--x", Math.random() * 360 - 180 + "px");
+            b.style.setProperty("--y", -Math.random() * 380 - 40 + "px");
+            document.body.appendChild(b);
+            setTimeout(() => b.remove(), 1700);
+          }
+        }, 200);
       }
 
       // ============ EDIT THIS: all your details live here ============
